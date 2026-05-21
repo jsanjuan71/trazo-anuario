@@ -26,7 +26,8 @@
     -webkit-font-smoothing: antialiased;
   }
   body {
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
     background:
       radial-gradient(ellipse 55vw 55vh at 12% 22%, rgba(60, 45, 105, 0.15) 0%, transparent 60%),
       radial-gradient(ellipse 60vw 55vh at 88% 82%, rgba(90, 40, 55, 0.13) 0%, transparent 60%),
@@ -246,27 +247,30 @@
   const nextBtn = document.getElementById('nextBtn');
   totalEl.textContent = TOTAL_PAGES;
 
-  // Calcular tamaño base basado en el viewport disponible
-  function computeBookSize() {
-    const main = document.querySelector('main');
-    const availW = main.clientWidth - 24;
-    const availH = main.clientHeight - 24;
-    // Limitamos la altura para que quepa en el viewport, ancho calculado por aspect
-    const baseH = Math.min(availH, 820);
-    const baseW = baseH * ASPECT_RATIO;
-    return { w: Math.round(baseW), h: Math.round(baseH) };
+  // Calcular bounds del libro respetando el viewport real (header + footer + padding)
+  function computeBounds() {
+    const headerH = document.querySelector('header').offsetHeight;
+    const footerH = document.querySelector('footer').offsetHeight;
+    const vPadding = 28;
+    const availH = Math.max(window.innerHeight - headerH - footerH - vPadding, 340);
+    const availW = Math.max(window.innerWidth - 24, 260);
+    // En desktop ancho: el libro muestra spread (2 páginas), maxWidth es POR PÁGINA
+    // En mobile: una sola página, maxWidth es el ancho total disponible
+    const isSpread = availW >= 760;
+    const maxW = isSpread ? Math.floor(availW / 2) - 8 : availW;
+    return { availH, availW, maxW, isSpread };
   }
 
-  const { w, h } = computeBookSize();
+  const bounds = computeBounds();
 
   const pageFlip = new St.PageFlip(bookEl, {
-    width: w,
-    height: h,
+    width: Math.min(420, bounds.maxW),
+    height: Math.min(488, bounds.availH),
     size: 'stretch',
-    minWidth: 260,
-    maxWidth: 700,
+    minWidth: 240,
+    maxWidth: bounds.maxW,
     minHeight: 320,
-    maxHeight: 820,
+    maxHeight: bounds.availH,
     maxShadowOpacity: 0.5,
     showCover: true,
     mobileScrollSupport: false,
