@@ -190,6 +190,29 @@
   .carrera-blob {
     position: absolute;
     inset: 0;
+    overflow: hidden;
+  }
+  /* Icono alusivo a la carrera, watermark detrás del texto */
+  .carrera-icon {
+    position: absolute;
+    inset: 17%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.85);
+    opacity: 0.22;
+    z-index: 0;
+  }
+  .carrera-icon svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .carrera-blob .name,
+  .carrera-blob .count {
+    position: relative;
+    z-index: 1;
   }
   .carrera-blob .name {
     font-family: 'Fraunces', serif;
@@ -371,6 +394,22 @@
       inset 0 0 0 1px rgba(255,255,255,0.08);
     z-index: 1;
     transition: background 0.4s var(--ease);
+  }
+  /* Watermark sutil en thumbnail — zona superior para no chocar con el nombre */
+  .alumno-overlay::before {
+    content: 'DEMO';
+    position: absolute;
+    top: 36%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-24deg);
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: rgba(255, 255, 255, 0.42);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
   }
   .alumno-blob:hover .alumno-photo {
     filter: brightness(1.08) saturate(1.08);
@@ -586,18 +625,48 @@
   <div class="blob-field">
     <div class="carrera-slot slot-arq" data-carrera="arq">
       <div class="blob carrera-blob blob-arq">
+        <div class="carrera-icon">
+          <!-- Templo griego (Arquitectura) -->
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 18 38 L 50 18 L 82 38 Z"/>
+            <line x1="22" y1="44" x2="78" y2="44"/>
+            <line x1="30" y1="48" x2="30" y2="78"/>
+            <line x1="50" y1="48" x2="50" y2="78"/>
+            <line x1="70" y1="48" x2="70" y2="78"/>
+            <line x1="18" y1="82" x2="82" y2="82"/>
+          </svg>
+        </div>
         <div class="name">Arquitectura</div>
         <div class="count">10 egresados</div>
       </div>
     </div>
     <div class="carrera-slot slot-der" data-carrera="der">
       <div class="blob carrera-blob blob-der">
+        <div class="carrera-icon">
+          <!-- Balanza de la justicia (Derecho) -->
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="50" y1="20" x2="50" y2="78"/>
+            <line x1="20" y1="32" x2="80" y2="32"/>
+            <line x1="20" y1="32" x2="20" y2="42"/>
+            <path d="M 10 46 Q 20 60 30 46"/>
+            <line x1="80" y1="32" x2="80" y2="42"/>
+            <path d="M 70 46 Q 80 60 90 46"/>
+            <line x1="38" y1="82" x2="62" y2="82"/>
+            <circle cx="50" cy="20" r="2.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
         <div class="name">Derecho</div>
         <div class="count">10 egresados</div>
       </div>
     </div>
     <div class="carrera-slot slot-psi" data-carrera="psi">
       <div class="blob carrera-blob blob-psi">
+        <div class="carrera-icon">
+          <!-- Letra griega Ψ (Psicología) -->
+          <svg viewBox="0 0 100 100" fill="currentColor" stroke="none">
+            <text x="50" y="82" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="98" font-weight="300">Ψ</text>
+          </svg>
+        </div>
         <div class="name">Psicología</div>
         <div class="count">10 egresados</div>
       </div>
