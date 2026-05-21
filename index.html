@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a14">
+<meta name="robots" content="noindex, nofollow">
+<title>Generación 2026 — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a14;
+    --bg-soft: #14141f;
+    --ink: #e8e6e0;
+    --ink-soft: rgba(232, 230, 224, 0.6);
+    --ink-faint: rgba(232, 230, 224, 0.3);
+    --color-arq: #e89567;
+    --color-der: #c54a52;
+    --color-psi: #9d7bd9;
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; color: var(--ink); font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body {
+    position: fixed; inset: 0;
+    /* Capas de fondo: 3 manchas radiales muy sutiles + degradado vertical base */
+    background:
+      radial-gradient(ellipse 55vw 55vh at 12% 22%, rgba(60, 45, 105, 0.16) 0%, transparent 60%),
+      radial-gradient(ellipse 60vw 55vh at 88% 82%, rgba(90, 40, 55, 0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 70vw 50vh at 50% 55%, rgba(35, 55, 100, 0.12) 0%, transparent 65%),
+      linear-gradient(165deg, #0b0b1a 0%, #05050d 100%);
+  }
+
+  /* ============ ATMOSPHERE: aura que deriva muy lento ============ */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: -20%;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 60vw 50vh at center, rgba(80, 60, 140, 0.13) 0%, transparent 65%);
+    filter: blur(50px);
+    animation: aura-drift 35s ease-in-out infinite alternate;
+  }
+  @keyframes aura-drift {
+    0%   { transform: translate(-12%, -8%) scale(1); }
+    50%  { transform: translate(8%, -4%) scale(1.08); }
+    100% { transform: translate(10%, 10%) scale(0.96); }
+  }
+
+  /* ============ NOISE / GRAIN ============ */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    pointer-events: none;
+    opacity: 0.35;
+    z-index: 1;
+    mix-blend-mode: overlay;
+  }
+
+  /* ============ VIEW SYSTEM ============ */
+  .view {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s var(--ease);
+    z-index: 2;
+  }
+  .view.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ============ SHARED BLOB STYLE ============ */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    transition: opacity 0.5s var(--ease);
+    padding: 8px;
+  }
+  .blob::before {
+    content: '';
+    position: absolute;
+    inset: -14%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--c-hover-light, var(--c-light)) 0%, var(--c-hover-mid, var(--c-mid)) 35%, transparent 70%);
+    filter: blur(12px);
+    opacity: 0.42;
+    z-index: -1;
+    animation: blob-pulse 11s ease-in-out infinite;
+    animation-delay: var(--pulse-delay, 0s);
+    transition: opacity 0.45s var(--ease), filter 0.45s var(--ease), background 0.5s var(--ease);
+  }
+  .blob::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, var(--c-hover-light, var(--c-light)) 0%, var(--c-hover-mid, var(--c-mid)) 50%, var(--c-hover-deep, var(--c-deep)) 100%);
+    opacity: 0.96;
+    z-index: -1;
+    box-shadow: inset 0 -18px 36px rgba(0,0,0,0.4), inset 0 18px 28px rgba(255,255,255,0.08);
+    transition: background 0.5s var(--ease), filter 0.4s var(--ease);
+  }
+  /* Hover: NO transform — solo intensifica el halo y matiza el color */
+  .blob:hover::before {
+    opacity: 0.85;
+    filter: blur(18px);
+  }
+  .blob:hover::after {
+    filter: brightness(1.12) saturate(1.15);
+  }
+  .blob:active::after {
+    filter: brightness(0.95);
+  }
+
+  @keyframes blob-pulse {
+    0%, 100% { opacity: 0.4; }
+    50%      { opacity: 0.6; }
+  }
+
+  /* ============ OVERVIEW ============ */
+  #overview { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+
+  .overview-header {
+    position: absolute;
+    top: max(28px, env(safe-area-inset-top));
+    left: 0; right: 0;
+    text-align: center;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .overview-header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+  .overview-header .title {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(34px, 8.5vw, 56px);
+    margin-top: 8px;
+    letter-spacing: -0.02em;
+  }
+  .overview-header .title em {
+    font-style: italic;
+    font-weight: 300;
+    background: linear-gradient(120deg, var(--color-arq), var(--color-psi));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .overview-header .sub {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    letter-spacing: 0.01em;
+  }
+
+  .blob-field {
+    position: relative;
+    width: min(94vw, 540px);
+    height: min(72vh, 620px);
+    z-index: 3;
+  }
+
+  /* Slot de carrera: posición + scale en hover (no toca la animación de drift) */
+  .carrera-slot {
+    position: absolute;
+    width: 150px; height: 150px;
+    transition: transform 0.45s var(--ease);
+    cursor: pointer;
+  }
+  @media (min-width: 640px) {
+    .carrera-slot { width: 170px; height: 170px; }
+  }
+  @media (hover: hover) {
+    .carrera-slot:hover { transform: scale(1.2); }
+  }
+
+  .carrera-blob {
+    position: absolute;
+    inset: 0;
+  }
+  .carrera-blob .name {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .carrera-blob .count {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.78);
+    margin-top: 6px;
+  }
+
+  /* Posición de cada slot — triángulo amplio */
+  .slot-arq { top: 2%; left: 2%; }
+  .slot-der { top: 6%; right: 2%; }
+  .slot-psi { bottom: 4%; left: 50%; margin-left: -75px; }
+  @media (min-width: 640px) {
+    .slot-psi { margin-left: -85px; }
+  }
+
+  /* Colores y drift animation de cada carrera */
+  .blob-arq {
+    --c-light: #ffb088; --c-mid: var(--color-arq); --c-deep: #7a3a1f;
+    animation: blob-drift-1 11s ease-in-out infinite;
+  }
+  .blob-der {
+    --c-light: #e87078; --c-mid: var(--color-der); --c-deep: #6b1d24;
+    animation: blob-drift-2 12s ease-in-out infinite;
+  }
+  .blob-psi {
+    --c-light: #c2a8e8; --c-mid: var(--color-psi); --c-deep: #4d3878;
+    animation: blob-drift-3 14s ease-in-out infinite;
+  }
+
+  @keyframes blob-drift-1 {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(16px, -12px); }
+  }
+  @keyframes blob-drift-2 {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(-14px, 14px); }
+  }
+  @keyframes blob-drift-3 {
+    0%, 100% { transform: translate(0, 0); }
+    50%      { transform: translate(0, -16px); }
+  }
+
+  .overview-foot {
+    position: absolute;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    left: 0; right: 0;
+    text-align: center;
+    z-index: 5;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    pointer-events: none;
+  }
+
+  /* ============ ZONE ============ */
+  #zone .zone-glow {
+    position: absolute;
+    top: -20%; left: -10%; right: -10%;
+    height: 80vh;
+    background: radial-gradient(ellipse at center, var(--zone-color, transparent) 0%, transparent 65%);
+    opacity: 0.2;
+    filter: blur(45px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .zone-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    padding: max(20px, env(safe-area-inset-top)) 20px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    pointer-events: none;
+  }
+  .zone-header > * { pointer-events: auto; }
+  .back-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--ink);
+    padding: 9px 16px 9px 12px;
+    border-radius: 100px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.2s var(--ease);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.12); }
+  .back-btn .arrow { font-size: 16px; line-height: 1; margin-top: -1px; }
+  .zone-title {
+    text-align: right;
+    line-height: 1;
+  }
+  .zone-title-main {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--ink-soft);
+  }
+  .zone-title-main em {
+    font-style: italic;
+    color: var(--zone-color);
+    font-weight: 400;
+  }
+  .zone-title-sub {
+    margin-top: 5px;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+
+  .alumno-field {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+
+  /* Slot: maneja posición + centering + hover scale. Es lo que se atenúa/escala al expandir */
+  .alumno-slot {
+    position: absolute;
+    /* left, top, width, height set inline */
+    transform: translate(-50%, -50%);
+    transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
+    cursor: pointer;
+  }
+  @media (hover: hover) {
+    .alumno-slot:hover { transform: translate(-50%, -50%) scale(1.2); z-index: 5; }
+  }
+
+  /* Blob: rellena el slot y maneja su propio float sin pelear con el centering */
+  .alumno-blob {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    animation: alumno-float var(--float-dur, 14s) ease-in-out infinite;
+    animation-delay: var(--float-delay, 0s);
+  }
+  /* La esfera del alumno NO usa el círculo de color del .blob::after — usamos foto */
+  .alumno-blob::after { display: none; }
+
+  .alumno-photo {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center 25%;
+    background-repeat: no-repeat;
+    z-index: 0;
+    transition: filter 0.4s var(--ease);
+  }
+  .alumno-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(to bottom,
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,0) 38%,
+      rgba(0,0,0,0.35) 65%,
+      rgba(0,0,0,0.78) 100%);
+    box-shadow:
+      inset 0 -10px 24px rgba(0,0,0,0.3),
+      inset 0 0 0 1px rgba(255,255,255,0.08);
+    z-index: 1;
+    transition: background 0.4s var(--ease);
+  }
+  .alumno-blob:hover .alumno-photo {
+    filter: brightness(1.08) saturate(1.08);
+  }
+  .alumno-blob:hover .alumno-overlay {
+    background: linear-gradient(to bottom,
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,0) 45%,
+      rgba(0,0,0,0.25) 70%,
+      rgba(0,0,0,0.62) 100%);
+  }
+  .alumno-blob .name {
+    position: absolute;
+    bottom: 12%;
+    left: 8%;
+    right: 8%;
+    z-index: 2;
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 1.15;
+    letter-spacing: -0.005em;
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 0 12px rgba(0,0,0,0.5);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* Trayectoria de 4 waypoints únicos por esfera — sin patrón de ola */
+  @keyframes alumno-float {
+    0%   { transform: translate(var(--p1x, 0), var(--p1y, 0)); }
+    25%  { transform: translate(var(--p2x, 0), var(--p2y, 0)); }
+    50%  { transform: translate(var(--p3x, 0), var(--p3y, 0)); }
+    75%  { transform: translate(var(--p4x, 0), var(--p4y, 0)); }
+    100% { transform: translate(var(--p1x, 0), var(--p1y, 0)); }
+  }
+
+  /* ============ EXPANDED ALUMNO ============ */
+  #expanded {
+    background: rgba(5, 5, 10, 0.86);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px 20px;
+    z-index: 100;
+  }
+  .exp-portrait {
+    position: relative;
+    width: min(260px, 60vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    transform: scale(0.4);
+    opacity: 0;
+    transition: transform 0.55s var(--ease), opacity 0.4s var(--ease);
+    box-shadow:
+      0 30px 70px rgba(0,0,0,0.5),
+      0 0 0 1px rgba(255,255,255,0.05),
+      inset 0 0 0 1px rgba(255,255,255,0.06);
+  }
+  .exp-portrait::after {
+    content: '';
+    position: absolute;
+    inset: -25%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, var(--c-light, var(--color-arq)) 0%, transparent 65%);
+    filter: blur(40px);
+    opacity: 0.5;
+    z-index: -1;
+  }
+  .exp-portrait img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  #expanded.active .exp-portrait { transform: scale(1); opacity: 1; }
+
+  /* Watermark sutil — solo en el retrato expandido (donde la cara se ve clara) */
+  .exp-watermark {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-28deg);
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 38px;
+    letter-spacing: 0.35em;
+    color: rgba(255, 255, 255, 0.22);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 0 12px rgba(0,0,0,0.3);
+    pointer-events: none;
+    user-select: none;
+    z-index: 2;
+    white-space: nowrap;
+  }
+
+  .exp-details {
+    max-width: min(420px, 92vw);
+    margin-top: 28px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s var(--ease) 0.15s, transform 0.5s var(--ease) 0.15s;
+  }
+  #expanded.active .exp-details { opacity: 1; transform: translateY(0); }
+
+  .exp-nombre {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(22px, 5.5vw, 28px);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .exp-carrera {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--card-color, var(--color-arq));
+    margin-top: 10px;
+    font-weight: 500;
+  }
+  .exp-frase {
+    margin: 26px auto 0;
+    padding: 0 18px;
+    border-left: 2px solid var(--card-color, var(--color-arq));
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(15px, 4vw, 17px);
+    line-height: 1.55;
+    color: rgba(232, 230, 224, 0.88);
+    text-align: left;
+    max-width: 360px;
+  }
+  .exp-share {
+    margin-top: 30px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 22px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 100px;
+    color: var(--ink-soft);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+  }
+  .exp-share:hover {
+    border-color: var(--card-color, var(--color-arq));
+    color: var(--ink);
+  }
+  .exp-share svg { width: 13px; height: 13px; }
+
+  .close-btn {
+    position: absolute;
+    top: max(20px, env(safe-area-inset-top));
+    right: 18px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+    z-index: 110;
+    transition: background 0.2s var(--ease);
+  }
+  .close-btn:hover { background: rgba(255,255,255,0.12); }
+
+  /* ============ TRANSITIONS BETWEEN VIEWS ============ */
+  #overview.zoom-out {
+    transform: scale(1.8);
+    opacity: 0 !important;
+    transition: transform 0.6s var(--ease), opacity 0.5s var(--ease);
+  }
+  #zone.zoom-in {
+    animation: zone-zoom-in 0.7s var(--ease);
+  }
+  @keyframes zone-zoom-in {
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  #zone.fading-blobs .alumno-slot:not(.selected) {
+    opacity: 0.1;
+    transform: translate(-50%, -50%) scale(0.82);
+    pointer-events: none;
+  }
+  #zone.fading-blobs .alumno-slot.selected {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+</style>
+</head>
+<body>
+
+<!-- =================== VISTA GENERAL =================== -->
+<section id="overview" class="view active">
+  <div class="overview-header">
+    <div class="eyebrow">Anuario 2026</div>
+    <h1 class="title">Generación <em>2026</em></h1>
+    <div class="sub">Toca una carrera para entrar</div>
+  </div>
+
+  <div class="blob-field">
+    <div class="carrera-slot slot-arq" data-carrera="arq">
+      <div class="blob carrera-blob blob-arq">
+        <div class="name">Arquitectura</div>
+        <div class="count">10 egresados</div>
+      </div>
+    </div>
+    <div class="carrera-slot slot-der" data-carrera="der">
+      <div class="blob carrera-blob blob-der">
+        <div class="name">Derecho</div>
+        <div class="count">10 egresados</div>
+      </div>
+    </div>
+    <div class="carrera-slot slot-psi" data-carrera="psi">
+      <div class="blob carrera-blob blob-psi">
+        <div class="name">Psicología</div>
+        <div class="count">10 egresados</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overview-foot">Universidad · 2026</div>
+</section>
+
+<!-- =================== VISTA DE ZONA (esferas de alumnos) =================== -->
+<section id="zone" class="view">
+  <div class="zone-glow"></div>
+  <header class="zone-header">
+    <button class="back-btn" onclick="cerrarZona()">
+      <span class="arrow">←</span> Volver
+    </button>
+    <div class="zone-title">
+      <div class="zone-title-main">Carrera: <em id="zoneTitleName"></em></div>
+      <div class="zone-title-sub">Generación 2026</div>
+    </div>
+  </header>
+  <div class="alumno-field" id="alumnoField"></div>
+</section>
+
+<!-- =================== ALUMNO EXPANDIDO =================== -->
+<section id="expanded" class="view">
+  <button class="close-btn" onclick="cerrarExpanded()" aria-label="Cerrar">×</button>
+  <div class="exp-portrait" id="expPortrait">
+    <img id="expFoto" alt="">
+    <div class="exp-watermark">DEMO</div>
+  </div>
+  <div class="exp-details">
+    <div class="exp-nombre" id="expNombre"></div>
+    <div class="exp-carrera" id="expCarrera"></div>
+    <div class="exp-frase" id="expFrase"></div>
+    <button class="exp-share">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Compartir mi tarjeta
+    </button>
+  </div>
+</section>
+
+<script>
+const DATA = {
+  arq: {
+    nombre: 'Arquitectura',
+    color: '#e89567',
+    light: '#ffb088',
+    deep: '#7a3a1f',
+    alumnos: [
+      { foto: 'img/arq/Acevedo Torres Sofia.jpg', nombre: 'Sofía Acevedo Torres', frase: 'Construir, demoler, volver a empezar. Eso aprendí aquí.' },
+      { foto: 'img/arq/Avelar Enciso María José.jpg', nombre: 'María José Avelar Enciso', frase: 'Cada espacio cuenta una historia. La mía apenas empieza.' },
+      { foto: 'img/arq/Barraza Alcaraz Stephany.jpg', nombre: 'Stephany Barraza Alcaraz', frase: 'Cinco años de planos arrugados y café frío. No lo cambiaría por nada.' },
+      { foto: 'img/arq/Barron Hernandez Natalia.jpg', nombre: 'Natalia Barrón Hernández', frase: 'Vine a aprender a dibujar y me llevo a mis mejores amigos.' },
+      { foto: 'img/arq/Brenez Sandoval Miguel Ángel.jpg', nombre: 'Miguel Ángel Brenez Sandoval', frase: 'El edificio más importante que construí fue mi forma de pensar.' },
+      { foto: 'img/arq/Brito Valero Itzel.jpg', nombre: 'Itzel Brito Valero', frase: 'Para los que se quedaron hasta las 4 a.m. conmigo en taller.' },
+      { foto: 'img/arq/Carral Ochoa Julieta.jpg', nombre: 'Julieta Carral Ochoa', frase: 'Diseñar es la excusa que encontré para entender el mundo.' },
+      { foto: 'img/arq/Flores Castellón Nizza Merlot.jpg', nombre: 'Nizza Merlot Flores Castellón', frase: 'Gracias a mi familia por confiar en las maquetas de cartón.' },
+      { foto: 'img/arq/García Godínez Alvaro.jpg', nombre: 'Álvaro García Godínez', frase: 'Salgo con la certeza de no saber casi nada, y eso me emociona.' },
+      { foto: 'img/arq/Álvarez Gutiérrez Iliana Guadalupe.jpg', nombre: 'Iliana Guadalupe Álvarez Gutiérrez', frase: 'Lo único que tengo claro es que voy a seguir preguntando.' },
+    ],
+  },
+  der: {
+    nombre: 'Derecho',
+    color: '#c54a52',
+    light: '#e87078',
+    deep: '#6b1d24',
+    alumnos: [
+      { foto: 'img/der/Agraz Sánchez Astudillo Fernando.jpg', nombre: 'Fernando Agraz Sánchez Astudillo', frase: 'Vine a estudiar leyes, me llevo el oficio de discutir todo.' },
+      { foto: 'img/der/Alarcón Llaguno Alberto.jpg', nombre: 'Alberto Alarcón Llaguno', frase: 'Que el día que firme algo importante, recuerde por qué empecé.' },
+      { foto: 'img/der/Alcaraz Leal Valeria.jpg', nombre: 'Valeria Alcaraz Leal', frase: 'Para mi abuela, que sí entendió por qué hacía cinco años de esto.' },
+      { foto: 'img/der/Aldrete Ramírez Bruno.jpg', nombre: 'Bruno Aldrete Ramírez', frase: 'Aprendí que la verdad casi nunca está donde la buscas primero.' },
+      { foto: 'img/der/Aleman Rosales Valeria.jpg', nombre: 'Valeria Alemán Rosales', frase: 'Si mañana cambio el mundo en algo, va a ser por la gente de aquí.' },
+      { foto: 'img/der/Alvarez Estrada Salvador.jpg', nombre: 'Salvador Álvarez Estrada', frase: 'Más que abogado, salgo más necio. Eso me va a servir.' },
+      { foto: 'img/der/Alvarez Orozco Hugo.jpg', nombre: 'Hugo Álvarez Orozco', frase: 'Le debo medio título a las pláticas de cafetería.' },
+      { foto: 'img/der/Arroyo Maldonado Francisco Xavier.jpg', nombre: 'Francisco Xavier Arroyo Maldonado', frase: 'Estudié esto porque me molesta la injusticia. Sigue molestándome.' },
+      { foto: 'img/der/Atondo Sainz Juan Pablo.jpg', nombre: 'Juan Pablo Atondo Sainz', frase: 'Para los que dudaron de mí: aquí está la respuesta.' },
+      { foto: 'img/der/Balleza Lira Andrea Montserrat.jpg', nombre: 'Andrea Montserrat Balleza Lira', frase: 'Aprendí a leer entre líneas y a no creer en absolutos.' },
+    ],
+  },
+  psi: {
+    nombre: 'Psicología',
+    color: '#9d7bd9',
+    light: '#c2a8e8',
+    deep: '#4d3878',
+    alumnos: [
+      { foto: 'img/psi/Arceo Sandoval Diego Saúl.jpg', nombre: 'Diego Saúl Arceo Sandoval', frase: 'Vine a entender a los demás y me entendí un poco a mí.' },
+      { foto: 'img/psi/Arreguin Curiel Marisol.jpg', nombre: 'Marisol Arreguín Curiel', frase: 'Lo más bonito que aprendí fue a escuchar sin querer arreglar.' },
+      { foto: 'img/psi/Avelar Enciso Daniela.jpg', nombre: 'Daniela Avelar Enciso', frase: 'Por todos los que confiaron en mí para hablar de algo difícil.' },
+      { foto: 'img/psi/Boccaloni Sotomayor Gianella.jpg', nombre: 'Gianella Boccaloni Sotomayor', frase: 'A cada paciente futuro: prometo seguir aprendiendo.' },
+      { foto: 'img/psi/Chavarria Peresandi Paula.jpg', nombre: 'Paula Chavarría Peresandi', frase: 'Salgo creyendo que nadie está roto, solo en proceso.' },
+      { foto: 'img/psi/García Gomez Maria Jose.jpg', nombre: 'María José García Gómez', frase: 'Las preguntas más importantes no tienen respuesta corta.' },
+      { foto: 'img/psi/Gonzalez González Valentina.jpg', nombre: 'Valentina González González', frase: 'Para mi mamá, mi primera maestra de empatía.' },
+      { foto: 'img/psi/Gonzalez Toscano Irma Andrea.jpg', nombre: 'Irma Andrea González Toscano', frase: 'Aprendí que cuidar a otros empieza por cuidarte tú.' },
+      { foto: 'img/psi/González Hernández Ana.jpg', nombre: 'Ana González Hernández', frase: 'El silencio también dice cosas. Lo aprendí aquí.' },
+      { foto: 'img/psi/Gómez Casillas Maria Andrea.jpg', nombre: 'María Andrea Gómez Casillas', frase: 'Voy a hacer terapia muchos años. Y lo agradezco.' },
+    ],
+  },
+};
+
+// Constelación de 10 posiciones para los alumnos
+// (x%, y%, size_px, float_dx, float_dy, float_dur_seconds)
+// Movimiento amplio (8-14px) y cada esfera con su propia fase → feel de partículas flotantes
+// Posiciones base; los waypoints de drift se generan random por esfera en runtime
+const ALUMNO_POSITIONS = [
+  { x: 22, y: 22, size: 96, fdur: 11 },
+  { x: 68, y: 18, size: 90, fdur: 13 },
+  { x: 44, y: 30, size: 80, fdur: 14 },
+  { x: 80, y: 40, size: 98, fdur: 12 },
+  { x: 14, y: 46, size: 86, fdur: 13 },
+  { x: 52, y: 54, size: 104, fdur: 13 },
+  { x: 78, y: 64, size: 84, fdur: 11 },
+  { x: 28, y: 68, size: 92, fdur: 13 },
+  { x: 60, y: 80, size: 88, fdur: 12 },
+  { x: 18, y: 86, size: 80, fdur: 13 },
+];
+
+// Genera un punto aleatorio dentro de un radio. amp = amplitud máxima en px
+function randWaypoint(amp) {
+  return {
+    x: Math.round((Math.random() * 2 - 1) * amp),
+    y: Math.round((Math.random() * 2 - 1) * amp),
+  };
+}
+
+const overview = document.getElementById('overview');
+const zone = document.getElementById('zone');
+const expanded = document.getElementById('expanded');
+const alumnoField = document.getElementById('alumnoField');
+const zoneTitleName = document.getElementById('zoneTitleName');
+
+let carreraActual = null;
+let blobsAlumnos = [];
+
+function abrirZona(idCarrera) {
+  const carrera = DATA[idCarrera];
+  if (!carrera) return;
+  carreraActual = idCarrera;
+
+  zoneTitleName.textContent = carrera.nombre;
+  zone.style.setProperty('--zone-color', carrera.color);
+  document.querySelector('.zone-glow').style.setProperty('--zone-color', carrera.color);
+
+  // Generar las esferas de alumnos: slot (posición + centering) + blob (animación)
+  alumnoField.innerHTML = '';
+  blobsAlumnos = [];
+  carrera.alumnos.forEach((al, i) => {
+    const pos = ALUMNO_POSITIONS[i];
+    const slot = document.createElement('div');
+    slot.className = 'alumno-slot';
+    slot.style.cssText = `
+      left: ${pos.x}%;
+      top: ${pos.y}%;
+      width: ${pos.size}px;
+      height: ${pos.size}px;
+    `;
+    // 4 waypoints únicos por esfera (amplitud 22px) → trayectoria irregular, no ola
+    const wp = [randWaypoint(22), randWaypoint(22), randWaypoint(22), randWaypoint(22)];
+    // Delay negativo aleatorio → cada esfera empieza en una fase distinta del ciclo
+    const phaseDelay = -(Math.random() * pos.fdur).toFixed(2);
+    const blob = document.createElement('div');
+    blob.className = 'blob alumno-blob';
+    blob.style.cssText = `
+      --c-light: ${carrera.light};
+      --c-mid: ${carrera.color};
+      --c-deep: ${carrera.deep};
+      --pulse-delay: ${(Math.random() * 6).toFixed(1)}s;
+      --p1x: ${wp[0].x}px; --p1y: ${wp[0].y}px;
+      --p2x: ${wp[1].x}px; --p2y: ${wp[1].y}px;
+      --p3x: ${wp[2].x}px; --p3y: ${wp[2].y}px;
+      --p4x: ${wp[3].x}px; --p4y: ${wp[3].y}px;
+      --float-dur: ${pos.fdur}s;
+      animation-delay: ${phaseDelay}s;
+    `;
+    blob.innerHTML = `
+      <div class="alumno-photo" style="background-image: url('${encodeURI(al.foto)}')"></div>
+      <div class="alumno-overlay"></div>
+      <div class="name">${primerNombre(al.nombre)}</div>
+    `;
+    slot.addEventListener('click', () => abrirExpanded(idCarrera, i, slot));
+    slot.appendChild(blob);
+    alumnoField.appendChild(slot);
+    blobsAlumnos.push(slot);
+  });
+
+  overview.classList.add('zoom-out');
+  setTimeout(() => {
+    overview.classList.remove('active', 'zoom-out');
+    zone.classList.add('active', 'zoom-in');
+    setTimeout(() => zone.classList.remove('zoom-in'), 700);
+  }, 450);
+}
+
+function cerrarZona() {
+  zone.classList.remove('active');
+  setTimeout(() => {
+    overview.classList.add('active');
+    carreraActual = null;
+  }, 400);
+}
+
+function abrirExpanded(idCarrera, idx, blobEl) {
+  const carrera = DATA[idCarrera];
+  const al = carrera.alumnos[idx];
+  document.getElementById('expFoto').src = encodeURI(al.foto);
+  document.getElementById('expFoto').alt = al.nombre;
+  document.getElementById('expNombre').textContent = al.nombre;
+  document.getElementById('expCarrera').textContent = carrera.nombre;
+  document.getElementById('expFrase').textContent = `"${al.frase}"`;
+  const portrait = document.getElementById('expPortrait');
+  portrait.style.setProperty('--c-light', carrera.light);
+  document.documentElement.style.setProperty('--card-color', carrera.color);
+
+  // Marcar el blob seleccionado y atenuar el resto
+  if (blobEl) blobEl.classList.add('selected');
+  zone.classList.add('fading-blobs');
+
+  setTimeout(() => {
+    expanded.classList.add('active');
+  }, 80);
+}
+
+function cerrarExpanded() {
+  expanded.classList.remove('active');
+  setTimeout(() => {
+    zone.classList.remove('fading-blobs');
+    blobsAlumnos.forEach(b => b.classList.remove('selected'));
+  }, 300);
+}
+
+function primerNombre(nombreCompleto) {
+  // Devuelve los primeros 1-2 nombres (antes del primer apellido)
+  // Heurística simple: si hay "María José" o "Juan Pablo" etc, toma 2; si no, 1.
+  const partes = nombreCompleto.split(' ');
+  const compuestos = ['María', 'Juan', 'José', 'Ana', 'Luis', 'Miguel', 'Andrea', 'Carlos'];
+  if (partes.length >= 3 && compuestos.includes(partes[0])) {
+    return `${partes[0]} ${partes[1]}`;
+  }
+  return partes[0];
+}
+
+// Click handlers para overview
+document.querySelectorAll('.carrera-slot').forEach(s => {
+  s.addEventListener('click', () => abrirZona(s.dataset.carrera));
+});
+
+// Cerrar expanded al hacer click en el backdrop (no en el contenido)
+expanded.addEventListener('click', (e) => {
+  if (e.target === expanded) cerrarExpanded();
+});
+
+// ESC cierra capa superior
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (expanded.classList.contains('active')) cerrarExpanded();
+    else if (zone.classList.contains('active')) cerrarZona();
+  }
+});
+</script>
+</body>
+</html>
