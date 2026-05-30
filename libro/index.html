@@ -110,7 +110,6 @@
     justify-content: center;
   }
   .book-wrap::before {
-    /* Soft ambient glow under the book */
     content: '';
     position: absolute;
     top: 50%; left: 50%;
@@ -125,7 +124,6 @@
     box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
     border-radius: 4px;
   }
-  /* Loader visible mientras cargan las imágenes */
   .loader {
     position: absolute;
     inset: 0;
@@ -203,12 +201,147 @@
     font-weight: 400;
   }
 
+  /* ============ LOGOUT (discreto) ============ */
+  .logout-link {
+    position: fixed;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    right: 16px;
+    z-index: 4;
+    background: none;
+    border: none;
+    color: var(--ink-faint);
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 6px 10px;
+    transition: color 0.2s var(--ease);
+  }
+  .logout-link:hover { color: var(--ink-soft); }
+  .logout-link.hidden { display: none; }
+
   /* ============ STPAGEFLIP OVERRIDES ============ */
   .stf__parent { user-select: none; }
   .stf__block { background: transparent !important; }
+
+  /* ============ GATE (acceso restringido) ============ */
+  #gate {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(ellipse 55vw 55vh at 12% 22%, rgba(60, 45, 105, 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60vw 55vh at 88% 82%, rgba(90, 40, 55, 0.16) 0%, transparent 60%),
+      radial-gradient(ellipse 70vw 50vh at 50% 55%, rgba(35, 55, 100, 0.13) 0%, transparent 65%),
+      linear-gradient(165deg, #0b0b1a 0%, #05050d 100%);
+    padding: 24px;
+  }
+  #gate.hidden { display: none; }
+  .gate-card {
+    position: relative;
+    z-index: 1;
+    width: min(380px, 100%);
+    text-align: center;
+    padding: 36px 28px;
+  }
+  .gate-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+  .gate-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(26px, 5vw, 32px);
+    margin-top: 6px;
+    letter-spacing: -0.01em;
+  }
+  .gate-title em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent);
+  }
+  .gate-sub {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .gate-form {
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .gate-input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 15px;
+    padding: 14px 16px;
+    width: 100%;
+    text-align: center;
+    letter-spacing: 0.05em;
+    transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+    -webkit-font-smoothing: antialiased;
+  }
+  .gate-input::placeholder { color: var(--ink-faint); letter-spacing: 0; }
+  .gate-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.06);
+  }
+  .gate-btn {
+    background: var(--accent);
+    color: #1a1208;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: filter 0.2s var(--ease), transform 0.15s var(--ease);
+  }
+  .gate-btn:hover { filter: brightness(1.08); }
+  .gate-btn:active { transform: scale(0.98); }
+  .gate-error {
+    margin-top: 14px;
+    font-size: 12px;
+    color: #e87078;
+    min-height: 18px;
+    letter-spacing: 0.02em;
+    opacity: 0;
+    transition: opacity 0.25s var(--ease);
+  }
+  .gate-error.show { opacity: 1; }
 </style>
 </head>
 <body>
+
+<!-- =================== GATE =================== -->
+<div id="gate" class="hidden">
+  <div class="gate-card">
+    <div class="gate-eyebrow">Acceso restringido</div>
+    <h1 class="gate-title">Generación <em>2026</em></h1>
+    <p class="gate-sub">Ingresa la contraseña para acceder al libro</p>
+    <form class="gate-form" id="gateForm">
+      <input type="password" class="gate-input" id="gateInput" placeholder="Contraseña" autocomplete="off" spellcheck="false">
+      <button type="submit" class="gate-btn">Entrar</button>
+    </form>
+    <div class="gate-error" id="gateError">Contraseña incorrecta</div>
+  </div>
+</div>
 
 <header>
   <div class="eyebrow">Universidad · Anuario</div>
@@ -228,80 +361,156 @@
   <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><span class="ic">›</span></button>
 </footer>
 
+<button class="logout-link hidden" id="logoutBtn" title="Cerrar sesión">Salir</button>
+
+<script src="config.js"></script>
 <script src="https://unpkg.com/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script>
-  const TOTAL_PAGES = 10;
-  const ASPECT_RATIO = 0.861; // ancho / alto
+  // ============ GATE LOGIC ============
+  const STORAGE_KEY = 'anuario_unlocked';
+  const gate = document.getElementById('gate');
+  const gateForm = document.getElementById('gateForm');
+  const gateInput = document.getElementById('gateInput');
+  const gateError = document.getElementById('gateError');
+  const logoutBtn = document.getElementById('logoutBtn');
 
-  // Construir array de URLs de las páginas
-  const pages = [];
-  for (let i = 1; i <= TOTAL_PAGES; i++) {
-    pages.push(`pages/page-${String(i).padStart(3, '0')}.jpg`);
+  async function sha256(text) {
+    const buf = new TextEncoder().encode(text);
+    const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hashBuf))
+      .map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  const bookEl = document.getElementById('book');
-  const loader = document.getElementById('loader');
-  const counter = document.getElementById('pageCurrent');
-  const totalEl = document.getElementById('pageTotal');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  totalEl.textContent = TOTAL_PAGES;
-
-  // Calcular bounds del libro respetando el viewport real (header + footer + padding)
-  function computeBounds() {
-    const headerH = document.querySelector('header').offsetHeight;
-    const footerH = document.querySelector('footer').offsetHeight;
-    const vPadding = 28;
-    const availH = Math.max(window.innerHeight - headerH - footerH - vPadding, 340);
-    const availW = Math.max(window.innerWidth - 24, 260);
-    // En desktop ancho: el libro muestra spread (2 páginas), maxWidth es POR PÁGINA
-    // En mobile: una sola página, maxWidth es el ancho total disponible
-    const isSpread = availW >= 760;
-    const maxW = isSpread ? Math.floor(availW / 2) - 8 : availW;
-    return { availH, availW, maxW, isSpread };
+  function isUnlocked() {
+    try { return localStorage.getItem(STORAGE_KEY) === 'true'; }
+    catch (e) { return false; }
   }
 
-  const bounds = computeBounds();
+  function showGate() {
+    gate.classList.remove('hidden');
+    logoutBtn.classList.add('hidden');
+    setTimeout(() => gateInput.focus(), 60);
+  }
 
-  const pageFlip = new St.PageFlip(bookEl, {
-    width: Math.min(420, bounds.maxW),
-    height: Math.min(488, bounds.availH),
-    size: 'stretch',
-    minWidth: 240,
-    maxWidth: bounds.maxW,
-    minHeight: 320,
-    maxHeight: bounds.availH,
-    maxShadowOpacity: 0.5,
-    showCover: true,
-    mobileScrollSupport: false,
-    usePortrait: true,
-    drawShadow: true,
-    flippingTime: 750,
-    swipeDistance: 25,
-    autoSize: true,
+  function unlock() {
+    try { localStorage.setItem(STORAGE_KEY, 'true'); } catch (e) {}
+    gate.classList.add('hidden');
+    logoutBtn.classList.remove('hidden');
+    initApp();
+  }
+
+  function lock() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    location.reload();
+  }
+
+  gateForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (typeof PASSWORD_HASH === 'undefined') {
+      gateError.textContent = 'Error de configuración';
+      gateError.classList.add('show');
+      return;
+    }
+    const hash = await sha256(gateInput.value);
+    if (hash === PASSWORD_HASH) {
+      unlock();
+    } else {
+      gateError.textContent = 'Contraseña incorrecta';
+      gateError.classList.add('show');
+      gateInput.value = '';
+      gateInput.focus();
+    }
   });
 
-  pageFlip.loadFromImages(pages);
+  gateInput.addEventListener('input', () => gateError.classList.remove('show'));
 
-  pageFlip.on('flip', (e) => {
-    const current = e.data + 1;
-    counter.textContent = current;
-    prevBtn.disabled = current <= 1;
-    nextBtn.disabled = current >= TOTAL_PAGES;
+  logoutBtn.addEventListener('click', () => {
+    if (confirm('¿Cerrar sesión y volver a pedir la contraseña?')) lock();
   });
 
-  pageFlip.on('init', () => {
-    loader.classList.add('hidden');
-  });
+  // ============ MAIN APP (flipbook) ============
+  let appInitialized = false;
 
-  prevBtn.addEventListener('click', () => pageFlip.flipPrev());
-  nextBtn.addEventListener('click', () => pageFlip.flipNext());
+  function initApp() {
+    if (appInitialized) return;
+    appInitialized = true;
 
-  // Teclas izquierda/derecha
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') pageFlip.flipPrev();
-    else if (e.key === 'ArrowRight') pageFlip.flipNext();
-  });
+    const TOTAL_PAGES = 10;
+    const ASPECT_RATIO = 0.861; // ancho / alto
+
+    const pages = [];
+    for (let i = 1; i <= TOTAL_PAGES; i++) {
+      pages.push(`pages/page-${String(i).padStart(3, '0')}.jpg`);
+    }
+
+    const bookEl = document.getElementById('book');
+    const loader = document.getElementById('loader');
+    const counter = document.getElementById('pageCurrent');
+    const totalEl = document.getElementById('pageTotal');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    totalEl.textContent = TOTAL_PAGES;
+
+    function computeBounds() {
+      const headerH = document.querySelector('header').offsetHeight;
+      const footerH = document.querySelector('footer').offsetHeight;
+      const vPadding = 28;
+      const availH = Math.max(window.innerHeight - headerH - footerH - vPadding, 340);
+      const availW = Math.max(window.innerWidth - 24, 260);
+      const isSpread = availW >= 760;
+      const maxW = isSpread ? Math.floor(availW / 2) - 8 : availW;
+      return { availH, availW, maxW, isSpread };
+    }
+
+    const bounds = computeBounds();
+
+    const pageFlip = new St.PageFlip(bookEl, {
+      width: Math.min(420, bounds.maxW),
+      height: Math.min(488, bounds.availH),
+      size: 'stretch',
+      minWidth: 240,
+      maxWidth: bounds.maxW,
+      minHeight: 320,
+      maxHeight: bounds.availH,
+      maxShadowOpacity: 0.5,
+      showCover: true,
+      mobileScrollSupport: false,
+      usePortrait: true,
+      drawShadow: true,
+      flippingTime: 750,
+      swipeDistance: 25,
+      autoSize: true,
+    });
+
+    pageFlip.loadFromImages(pages);
+
+    pageFlip.on('flip', (e) => {
+      const current = e.data + 1;
+      counter.textContent = current;
+      prevBtn.disabled = current <= 1;
+      nextBtn.disabled = current >= TOTAL_PAGES;
+    });
+
+    pageFlip.on('init', () => {
+      loader.classList.add('hidden');
+    });
+
+    prevBtn.addEventListener('click', () => pageFlip.flipPrev());
+    nextBtn.addEventListener('click', () => pageFlip.flipNext());
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+      else if (e.key === 'ArrowRight') pageFlip.flipNext();
+    });
+  }
+
+  // ============ BOOT ============
+  if (isUnlocked()) {
+    logoutBtn.classList.remove('hidden');
+    initApp();
+  } else {
+    showGate();
+  }
 </script>
 </body>
 </html>
